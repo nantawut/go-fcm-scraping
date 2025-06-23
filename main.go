@@ -62,8 +62,6 @@ type Team struct {
 }
 
 // Player holds the scraped data for a player.
-// REFACTOR: Fields are now typed correctly (e.g., int for Age, Potential).
-// This provides type safety and makes the data easier to work with.
 type Player struct {
 	Profile   string `json:"profile"`
 	Team      string `json:"team"`
@@ -74,10 +72,7 @@ type Player struct {
 	Growth    int    `json:"growth"`
 }
 
-// --- Scraper ---
-
 // Scraper encapsulates the state and methods for the scraping job.
-// REFACTOR: This avoids global variables, making dependencies explicit and the code testable.
 type Scraper struct {
 	client       *http.Client
 	minPotential int
@@ -87,16 +82,13 @@ type Scraper struct {
 	minDelay     time.Duration
 	maxDelay     time.Duration
 	rand         *rand.Rand // Use a local rand instance to avoid global state.
-
-	// REFACTOR: Regexes are compiled once for performance.
-	rowPattern  *regexp.Regexp
-	cellPattern *regexp.Regexp
-	tagStripper *regexp.Regexp
+	rowPattern   *regexp.Regexp
+	cellPattern  *regexp.Regexp
+	tagStripper  *regexp.Regexp
 }
 
 // NewScraper creates and configures a new Scraper instance.
 func NewScraper() *Scraper {
-	// REFACTOR: rand.Seed is deprecated. Create a new source for our local rand instance.
 	source := rand.NewSource(time.Now().UnixNano())
 
 	return &Scraper{
@@ -135,7 +127,9 @@ func (s *Scraper) fetchHTML(url string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("HTTP request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("HTTP request failed with status: %s", resp.Status)
@@ -175,7 +169,6 @@ func (s *Scraper) extractPlayers(team Team, html string) []Player {
 			continue
 		}
 
-		// REFACTOR: Parse all numeric fields and handle errors gracefully.
 		overall, _ := strconv.Atoi(s.stripTags(cols[1][1]))
 		age, _ := strconv.Atoi(s.stripTags(cols[4][1]))
 		price := s.stripTags(cols[5][1])
@@ -199,7 +192,6 @@ func (s *Scraper) stripTags(input string) string {
 }
 
 // writePlayersToFile saves the list of players to a valid JSON file.
-// REFACTOR: This now writes a proper JSON array, making the output much more useful.
 func (s *Scraper) writePlayersToFile(players []Player) error {
 	// Marshal the entire slice into a valid JSON array format with indentation.
 	jsonData, err := json.MarshalIndent(players, "", "  ")
@@ -231,11 +223,10 @@ func (s *Scraper) Run(teams []Team) {
 	log.Println("Starting player scouting...")
 
 	var wg sync.WaitGroup
-	// REFACTOR: The results channel now transports single players for more granular processing.
+
 	results := make(chan Player, len(teams)) // Buffer is still useful.
 	allPlayers := make([]Player, 0)
 
-	// REFACTOR: The result collection is now a simple for...range loop.
 	// It will block until the channel is closed by the goroutine above.
 	go func() {
 		for player := range results {
