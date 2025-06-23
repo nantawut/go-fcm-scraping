@@ -1,0 +1,64 @@
+# Created by Gemini Code Assist
+
+### Go ###
+# Compiled executable files from `go build`
+# The name of the binary will be the name of the directory.
+go-fcm-scraping
+go-fcm-scraping.exe
+
+# Generic binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.out
+
+# Test binaries and coverage files
+*.test
+coverage.*
+profile.out
+
+# Dependency directory (if using `go mod vendor`)
+vendor/
+
+### Project Output ###
+# Ignore the generated JSON file, as it's an artifact of running the code.
+high_potential_players.json
+
+### IDEs & Editors ###
+# VS Code
+.vscode/
+
+# GoLand / IntelliJ
+.idea/
+*.iml
+
+# Vim
+*~
+*.swp
+*.swo
+
+### Operating System Files ###
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+### Logs & Environment ###
+# Log files
+*.log
+logs/
+
+# Local environment variables
+.env
+.env.local
+.env.*.local
+!.env.example
